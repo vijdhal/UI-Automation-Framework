@@ -1,0 +1,56 @@
+# Keys must exactly match the Playwright test title (test.info().title)
+# Each entry holds the User data needed by that specific test case.
+
+TC_Login_001 - Login with admin credentials:
+  id: user_001
+  firstName: John
+  lastName: Doe
+  email: john.doe@example.com
+  role: admin
+  phone: "+1-555-0101"
+
+TC_Login_002 - Login with standard user credentials:
+  id: user_002
+  firstName: Jane
+  lastName: Smith
+  email: jane.smith@example.com
+  role: standard
+  phone: "+1-555-0102"
+
+TC_Login_003 - Login with manager credentials:
+  id: user_003
+  firstName: Robert
+  lastName: Johnson
+  email: robert.johnson@example.com
+  role: manager
+
+TC_Profile_001 - Update user profile details:
+  id: user_004
+  firstName: Alice
+  lastName: Williams
+  email: alice.williams@example.com
+  role: standard
+  phone: "+1-555-0104"
+
+TC_Profile_002 - View readonly user profile:
+  id: user_005
+  firstName: Charlie
+  lastName: Brown
+  email: charlie.brown@example.com
+  role: readonly
+
+# ─── Salesforce ───────────────────────────────────────────────────────────────
+
+TC_SF_Login_001 - Login with valid admin credentials:
+  id: sf_user_001
+  firstName: Sarah
+  lastName: Connor
+  email: sarah.connor@myorg.salesforce.com
+  role: admin
+
+TC_SF_Login_003 - Login with standard user credentials:
+  id: sf_user_002
+  firstName: James
+  lastName: Wilson
+  email: james.wilson@myorg.salesforce.com
+  role: standard

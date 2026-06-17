@@ -1,0 +1,48 @@
+{
+  "name": "ui-automation-framework",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test:dev": "cross-env ENV=dev npx playwright test",
+    "test:qa": "cross-env ENV=qa npx playwright test",
+    "test:uat": "cross-env ENV=uat npx playwright test",
+    "test:dev:headed": "cross-env ENV=dev npx playwright test --headed",
+    "test:qa:headed": "cross-env ENV=qa npx playwright test --headed",
+    "test:uat:headed": "cross-env ENV=uat npx playwright test --headed",
+    "report": "npx playwright show-report",
+    "report:ortoni:dev": "npx ortoni-report show-report --dir $(ls -dt ortoni-report-dev-* | head -1)",
+    "report:ortoni:qa": "npx ortoni-report show-report --dir $(ls -dt ortoni-report-qa-* | head -1)",
+    "report:ortoni:uat": "npx ortoni-report show-report --dir $(ls -dt ortoni-report-uat-* | head -1)"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.61.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/lodash": "^4.17.24",
+    "@types/node": "^25.9.3",
+    "cross-env": "^7.0.3",
+    "eslint": "^10.5.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.4"
+  },
+  "dependencies": {
+    "docx": "^9.7.1",
+    "dotenv": "^17.4.2",
+    "exceljs": "^4.4.0",
+    "faker": "^6.6.6",
+    "js-yaml": "^4.2.0",
+    "lodash": "^4.18.1",
+    "mssql": "^12.5.5",
+    "mysql2": "^3.22.5",
+    "oracledb": "^7.0.0",
+    "ortoni-report": "^4.10.0",
+    "pg": "^8.21.0",
+    "uuid": "^14.0.0",
+    "winston": "^3.19.0",
+    "xlsx": "^0.18.5"
+  }
+}

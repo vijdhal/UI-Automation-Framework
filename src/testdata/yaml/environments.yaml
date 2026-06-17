@@ -1,0 +1,29 @@
+# Keyed by environment name (dev | qa | uat).
+# baseUrl and apiUrl are intentionally excluded — they are read from
+# the active .env.* file by ConfigManager to avoid duplication.
+#
+# Usage: yamlReader.getEnvironment(process.env['ENV'] ?? 'dev')
+
+dev:
+  timeout: 30000
+  features:
+    darkMode: true
+    betaFeatures: true
+    mockPayments: true
+    maintenanceBanner: false
+
+qa:
+  timeout: 30000
+  features:
+    darkMode: true
+    betaFeatures: false
+    mockPayments: true
+    maintenanceBanner: false
+
+uat:
+  timeout: 45000
+  features:
+    darkMode: false
+    betaFeatures: false
+    mockPayments: false
+    maintenanceBanner: true

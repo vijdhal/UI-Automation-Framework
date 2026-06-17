@@ -1,0 +1,39 @@
+# ── Dependencies ──────────────────────────────────────────────────────────────
+node_modules/
+
+# ── Environment files (contain credentials — never commit) ────────────────────
+.env.dev
+.env.qa
+.env.uat
+.env.local
+
+# ── Salesforce auth state (contains live session cookies) ─────────────────────
+.auth/
+
+# ── Playwright output ─────────────────────────────────────────────────────────
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+playwright/.auth/
+
+# ── Ortoni report output ──────────────────────────────────────────────────────
+ortoni-report-*/
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+logs/
+
+# ── Screenshots ───────────────────────────────────────────────────────────────
+screenshots/
+
+# ── TypeScript build ──────────────────────────────────────────────────────────
+*.tsbuildinfo
+dist/
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.vscode/settings.json
+.idea/

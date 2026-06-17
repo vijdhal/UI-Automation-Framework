@@ -1,0 +1,153 @@
+name: Playwright Tests
+
+# ─── Triggers ─────────────────────────────────────────────────────────────────
+on:
+  # Manual run from GitHub UI with environment choice (dev / qa / uat)
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - qa
+          - uat
+
+  # Automatic run on push to main — always uses dev
+  push:
+    branches: [main, master]
+
+# ─── Permissions ──────────────────────────────────────────────────────────────
+permissions:
+  contents: read
+
+# ─── Job ──────────────────────────────────────────────────────────────────────
+jobs:
+  playwright:
+    name: Playwright — ${{ github.event.inputs.environment || 'dev' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    # Pulls secrets from the matching GitHub Environment (dev / qa / uat).
+    # One-time setup: GitHub repo → Settings → Environments → create dev, qa, uat
+    # Then add the secrets listed in Step 4 of this file to each environment.
+    environment: ${{ github.event.inputs.environment || 'dev' }}
+
+    env:
+      ENV: ${{ github.event.inputs.environment || 'dev' }}
+      CI: 'true'
+
+    steps:
+      # ── 1. Checkout ───────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Node.js setup ──────────────────────────────────────────────────────
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      # ── 3. Install dependencies ───────────────────────────────────────────────
+      - name: Install npm dependencies
+        run: npm ci
+
+      # ── 4. Install only Chromium (SF tests use Chromium only) ─────────────────
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      # ── 5. Write .env file from GitHub Environment Secrets ────────────────────
+      # Secrets required in each GitHub Environment (dev / qa / uat):
+      #   BASE_URL         — Salesforce org URL
+      #   API_URL          — Internal API URL
+      #   DB_HOST          — Database host
+      #   DB_PORT          — Database port
+      #   DB_NAME          — Database name
+      #   DB_USER          — Database user
+      #   DB_PASSWORD      — Database password
+      #   SF_CLIENT_ID     — Connected App consumer key
+      #   SF_CLIENT_SECRET — Connected App consumer secret
+      #   SF_USERNAME      — Salesforce test user email
+      #   SF_PASSWORD      — Salesforce test user password
+      #   SF_SECURITY_TOKEN — Salesforce security token
+      - name: Write .env.${{ env.ENV }} from secrets
+        env:
+          BASE_URL:          ${{ secrets.BASE_URL }}
+          API_URL:           ${{ secrets.API_URL }}
+          DB_HOST:           ${{ secrets.DB_HOST }}
+          DB_PORT:           ${{ secrets.DB_PORT }}
+          DB_NAME:           ${{ secrets.DB_NAME }}
+          DB_USER:           ${{ secrets.DB_USER }}
+          DB_PASSWORD:       ${{ secrets.DB_PASSWORD }}
+          SF_CLIENT_ID:      ${{ secrets.SF_CLIENT_ID }}
+          SF_CLIENT_SECRET:  ${{ secrets.SF_CLIENT_SECRET }}
+          SF_USERNAME:       ${{ secrets.SF_USERNAME }}
+          SF_PASSWORD:       ${{ secrets.SF_PASSWORD }}
+          SF_SECURITY_TOKEN: ${{ secrets.SF_SECURITY_TOKEN }}
+        run: |
+          cat > .env.${{ env.ENV }} <<EOF
+          BASE_URL=${BASE_URL}
+          API_URL=${API_URL}
+          DB_HOST=${DB_HOST}
+          DB_PORT=${DB_PORT}
+          DB_NAME=${DB_NAME}
+          DB_USER=${DB_USER}
+          DB_PASSWORD=${DB_PASSWORD}
+          SF_CLIENT_ID=${SF_CLIENT_ID}
+          SF_CLIENT_SECRET=${SF_CLIENT_SECRET}
+          SF_USERNAME=${SF_USERNAME}
+          SF_PASSWORD=${SF_PASSWORD}
+          SF_SECURITY_TOKEN=${SF_SECURITY_TOKEN}
+          SF_AUTH_URL=https://login.salesforce.com/services/oauth2/token
+          SF_API_VERSION=v62.0
+          SF_DC_API_VERSION=v1
+          EOF
+
+      # ── 6. Create runtime directories ─────────────────────────────────────────
+      - name: Create runtime directories
+        run: mkdir -p .auth screenshots logs
+
+      # ── 7. Run all tests ──────────────────────────────────────────────────────
+      # IMPORTANT — MFA note:
+      # The sf-setup project logs in to Salesforce to save a session cookie.
+      # In CI this will FAIL if Salesforce prompts for MFA verification.
+      # Before running in CI, disable MFA for the test user:
+      #   Salesforce Setup → Users → [test user] → uncheck "MFA for UI Logins"
+      - name: Run Playwright tests
+        run: npx playwright test
+
+      # ── 8. Upload artifacts (always, even on failure) ─────────────────────────
+      - name: Upload Playwright HTML report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ env.ENV }}-run${{ github.run_number }}
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Upload Ortoni report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ortoni-report-${{ env.ENV }}-run${{ github.run_number }}
+          path: ortoni-report-*/
+          retention-days: 30
+
+      - name: Upload failure screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots-${{ env.ENV }}-run${{ github.run_number }}
+          path: screenshots/
+          retention-days: 30
+
+      - name: Upload Playwright traces
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: traces-${{ env.ENV }}-run${{ github.run_number }}
+          path: test-results/
+          retention-days: 15

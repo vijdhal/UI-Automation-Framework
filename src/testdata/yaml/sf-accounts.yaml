@@ -1,0 +1,21 @@
+# Account test data — keyed by exact Playwright test title (testInfo.title)
+# Replace accountId values with real Salesforce Account Ids from your org.
+# Record Ids can be found in the URL when viewing an account:
+#   https://<org>.lightning.force.com/lightning/r/Account/<ID>/view
+
+TC_SF_Account_001 - Verify Account UI fields match Salesforce Object:
+  accountId: 001XXXXXXXXXXXXXXXXX
+  compareFields:
+    - Name
+    - Phone
+    - Website
+    - Industry
+    - Type
+
+TC_SF_Account_002 - Verify Account UI fields match Data Cloud:
+  accountId: 001XXXXXXXXXXXXXXXXX
+  dataCloudTable: Account__dlm
+  compareFields:
+    - Name
+    - Phone__c
+    - Industry__c
