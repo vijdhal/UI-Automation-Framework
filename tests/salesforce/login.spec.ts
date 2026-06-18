@@ -2,9 +2,6 @@ import { test } from '@playwright/test';
 import { LoginPage } from '../../src/pages/salesforce/LoginPage';
 import { yamlReader } from '../../src/utils/YamlReader';
 
-// Login tests exercise the login flow directly — bypass stored auth state.
-test.use({ storageState: { cookies: [], origins: [] } });
-
 /**
  * Salesforce Login Tests
  *
