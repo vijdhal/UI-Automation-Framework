@@ -1,4 +1,4 @@
-import * as dotenv from 'dotenv';
+import * as fs from 'fs';
 import * as path from 'path';
 import {
   DBConfig,
@@ -41,11 +41,23 @@ class ConfigManager {
 
   private loadEnvFile(env: Environment): void {
     const envFilePath = path.resolve(process.cwd(), `.env.${env}`);
-    const result = dotenv.config({ path: envFilePath });
-    if (result.error) {
+    if (!fs.existsSync(envFilePath)) {
       throw new Error(
-        `Failed to load env file ".env.${env}" at ${envFilePath}: ${result.error.message}`
+        `Env file ".env.${env}" not found at ${envFilePath}.\n` +
+        `Run: copy .env.example .env.${env}  then fill in the values.`
       );
+    }
+    const content = fs.readFileSync(envFilePath, 'utf-8');
+    for (const line of content.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const eqIndex = trimmed.indexOf('=');
+      if (eqIndex === -1) continue;
+      const key   = trimmed.slice(0, eqIndex).trim();
+      const value = trimmed.slice(eqIndex + 1).trim();
+      if (key && process.env[key] === undefined) {
+        process.env[key] = value;
+      }
     }
   }
 
