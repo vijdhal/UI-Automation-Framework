@@ -1,7 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 import { OrtoniReportConfig } from 'ortoni-report';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as os from 'os';
-import { configManager } from './src/config/ConfigManager';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -18,9 +19,30 @@ function buildTimestamp(): string {
   );
 }
 
+function loadEnv(env: string): void {
+  const envFilePath = path.resolve(process.cwd(), `.env.${env}`);
+  if (!fs.existsSync(envFilePath)) {
+    throw new Error(
+      `Env file ".env.${env}" not found at ${envFilePath}.\n` +
+      `Run: copy .env.example .env.${env}  then fill in the values.`
+    );
+  }
+  const content = fs.readFileSync(envFilePath, 'utf-8');
+  for (const line of content.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eqIndex = trimmed.indexOf('=');
+    if (eqIndex === -1) continue;
+    const key   = trimmed.slice(0, eqIndex).trim();
+    const value = trimmed.slice(eqIndex + 1).trim();
+    if (key && process.env[key] === undefined) process.env[key] = value;
+  }
+}
+
 // ─── Environment + reporting ──────────────────────────────────────────────────
 
-const env       = configManager.getEnvironment();
+const env = (process.env['ENV'] ?? 'dev').toLowerCase().trim();
+loadEnv(env);
 const timestamp = buildTimestamp();
 
 const ortoniConfig: OrtoniReportConfig = {
@@ -59,7 +81,7 @@ export default defineConfig({
   ],
 
   use: {
-    baseURL:           configManager.getBaseUrl(),
+    baseURL:           process.env['BASE_URL'] ?? '',
     navigationTimeout: 60_000,
     actionTimeout:     30_000,
     trace:             'on-first-retry',
