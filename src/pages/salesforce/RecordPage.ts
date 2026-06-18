@@ -9,7 +9,7 @@ const loc = SalesforceLocators.record;
 
 /**
  * Generic Salesforce Lightning record page.
- * All specific object pages (AccountPage, ContactPage…) extend this.
+ * AccountPage extends this for typed field access.
  */
 export class RecordPage extends BasePage {
   protected readonly form: LightningRecordForm;

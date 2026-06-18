@@ -2,7 +2,6 @@ import { ISalesforceApiClient } from '../../interfaces/ISalesforceApiClient';
 import { ILogger } from '../../interfaces/ILogger';
 import { SfRecord, SoqlResult } from '../../interfaces/salesforce.types';
 import { SalesforceAuthManager } from './SalesforceAuthManager';
-import { configManager } from '../../config/ConfigManager';
 import { createLogger } from '../../utils/Logger';
 
 export class SalesforceApiClient implements ISalesforceApiClient {
@@ -21,7 +20,7 @@ export class SalesforceApiClient implements ISalesforceApiClient {
   async queryRaw<T extends SfRecord>(soql: string): Promise<SoqlResult<T>> {
     this.logger.info(`SOQL → ${soql}`);
     const { accessToken, instanceUrl } = await this.authManager.getToken();
-    const version = configManager.getSalesforceConfig().apiVersion;
+    const version = process.env['SF_API_VERSION'] ?? 'v62.0';
 
     const url = `${instanceUrl}/services/data/${version}/query?q=${encodeURIComponent(soql)}`;
     const response = await this.request<SoqlResult<T>>(url, 'GET', accessToken);
@@ -36,7 +35,7 @@ export class SalesforceApiClient implements ISalesforceApiClient {
     fields?: string[]
   ): Promise<T> {
     const { accessToken, instanceUrl } = await this.authManager.getToken();
-    const version = configManager.getSalesforceConfig().apiVersion;
+    const version = process.env['SF_API_VERSION'] ?? 'v62.0';
 
     const fieldsParam = fields?.length ? `?fields=${fields.join(',')}` : '';
     const url = `${instanceUrl}/services/data/${version}/sobjects/${sobject}/${id}${fieldsParam}`;
@@ -91,7 +90,16 @@ let _instance: SalesforceApiClient | null = null;
 export function getSalesforceApiClient(): SalesforceApiClient {
   if (!_instance) {
     const logger = createLogger('SF:AuthManager');
-    const authManager = new SalesforceAuthManager(configManager.getSalesforceConfig(), logger);
+    const authManager = new SalesforceAuthManager({
+      instanceUrl:   process.env['BASE_URL'] ?? '',
+      clientId:      process.env['SF_CLIENT_ID'] ?? '',
+      clientSecret:  process.env['SF_CLIENT_SECRET'] ?? '',
+      username:      process.env['SF_USERNAME'] ?? '',
+      password:      process.env['SF_PASSWORD'] ?? '',
+      securityToken: process.env['SF_SECURITY_TOKEN'] ?? '',
+      authUrl:       process.env['SF_AUTH_URL'] ?? 'https://login.salesforce.com/services/oauth2/token',
+      apiVersion:    process.env['SF_API_VERSION'] ?? 'v62.0',
+    }, logger);
     _instance = new SalesforceApiClient(authManager);
   }
   return _instance;

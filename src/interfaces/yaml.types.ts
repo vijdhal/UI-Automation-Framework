@@ -18,19 +18,13 @@ export interface Credential {
   environment?: string;
 }
 
-/**
- * What environments.yaml stores per env key.
- * baseUrl and apiUrl are intentionally absent — they come from .env.* via ConfigManager.
- */
+/** What environments.yaml stores per env key. baseUrl/apiUrl come from process.env at runtime. */
 export interface EnvironmentYamlEntry {
   timeout: number;
   features: Record<string, boolean>;
 }
 
-/**
- * Full environment config returned by getEnvironment().
- * baseUrl and apiUrl are merged in at runtime from ConfigManager.
- */
+/** Full environment config returned by getEnvironment(). */
 export interface EnvironmentData extends EnvironmentYamlEntry {
   name: string;
   baseUrl: string;

@@ -1,7 +1,6 @@
 import { test as setup, expect } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
-import { configManager } from '../../config/ConfigManager';
 import { SalesforceLocators } from '../../locators/SalesforceLocators';
 
 export const SF_AUTH_FILE = path.resolve('.auth', 'sf-admin.json');
@@ -20,9 +19,10 @@ const POST_LOGIN_REGEX  = /\.salesforce\.com|\.force\.com/;
  *     MFA must be disabled for the test user (Setup → User → uncheck MFA)
  */
 setup('authenticate to Salesforce', async ({ page }) => {
-  const sf = configManager.getSalesforceConfig();
+  const sfUsername = process.env['SF_USERNAME'] ?? '';
+  const sfPassword = process.env['SF_PASSWORD'] ?? '';
 
-  if (!sf.username || !sf.password) {
+  if (!sfUsername || !sfPassword) {
     throw new Error(
       'SF_USERNAME and SF_PASSWORD must be set in the .env file before running SF tests.'
     );
@@ -35,8 +35,8 @@ setup('authenticate to Salesforce', async ({ page }) => {
   await page.goto(SF_LOGIN_URL);
   await expect(page.locator(SalesforceLocators.login.usernameInput)).toBeVisible({ timeout: 15_000 });
 
-  await page.fill(SalesforceLocators.login.usernameInput, sf.username);
-  await page.fill(SalesforceLocators.login.passwordInput, sf.password);
+  await page.fill(SalesforceLocators.login.usernameInput, sfUsername);
+  await page.fill(SalesforceLocators.login.passwordInput, sfPassword);
   await page.click(SalesforceLocators.login.loginButton);
 
   // ── Wait for redirect away from login.salesforce.com ─────────────────────────

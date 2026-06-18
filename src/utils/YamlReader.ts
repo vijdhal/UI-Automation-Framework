@@ -15,8 +15,6 @@ import {
   assertEnvironmentYamlEntry,
   assertUser,
 } from '../interfaces/yaml.types';
-import { configManager } from '../config/ConfigManager';
-
 const YAML_DIR = path.resolve(process.cwd(), 'src', 'testdata', 'yaml');
 const USERS_FILE = path.join(YAML_DIR, 'users.yaml');
 const CREDENTIALS_FILE = path.join(YAML_DIR, 'credentials.yaml');
@@ -140,9 +138,6 @@ class YamlReader implements IYamlReader {
   /**
    * Returns a complete EnvironmentData for the given environment name.
    *
-   * - timeout and features are read from environments.yaml
-   * - baseUrl and apiUrl come from the active .env.* file via ConfigManager
-   *
    * Usage inside a Playwright test:
    *   const env = yamlReader.getEnvironment(process.env['ENV'] ?? 'dev');
    */
@@ -162,8 +157,8 @@ class YamlReader implements IYamlReader {
 
     return {
       name: envName,
-      baseUrl: configManager.getBaseUrl(),
-      apiUrl: configManager.getApiUrl(),
+      baseUrl: process.env['BASE_URL'] ?? '',
+      apiUrl: process.env['API_URL'] ?? '',
       timeout: entry.timeout,
       features: entry.features,
     };

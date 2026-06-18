@@ -2,7 +2,6 @@ import { IDataCloudApiClient } from '../../interfaces/IDataCloudApiClient';
 import { ILogger } from '../../interfaces/ILogger';
 import { DataCloudQueryResult } from '../../interfaces/salesforce.types';
 import { SalesforceAuthManager } from '../salesforce/SalesforceAuthManager';
-import { configManager } from '../../config/ConfigManager';
 import { createLogger } from '../../utils/Logger';
 
 export class DataCloudApiClient implements IDataCloudApiClient {
@@ -22,8 +21,8 @@ export class DataCloudApiClient implements IDataCloudApiClient {
     this.logger.info(`Data Cloud SQL → ${sql}`);
 
     const { accessToken, instanceUrl } = await this.authManager.getToken();
-    const dcConfig = configManager.getDataCloudConfig();
-    const url = `${instanceUrl}/api/${dcConfig.apiVersion}/query`;
+    const dcApiVersion = process.env['SF_DC_API_VERSION'] ?? 'v1';
+    const url = `${instanceUrl}/api/${dcApiVersion}/query`;
 
     let response: Response;
     try {
@@ -60,7 +59,16 @@ let _instance: DataCloudApiClient | null = null;
 export function getDataCloudApiClient(): DataCloudApiClient {
   if (!_instance) {
     const logger = createLogger('SF:AuthManager');
-    const authManager = new SalesforceAuthManager(configManager.getSalesforceConfig(), logger);
+    const authManager = new SalesforceAuthManager({
+      instanceUrl:   process.env['BASE_URL'] ?? '',
+      clientId:      process.env['SF_CLIENT_ID'] ?? '',
+      clientSecret:  process.env['SF_CLIENT_SECRET'] ?? '',
+      username:      process.env['SF_USERNAME'] ?? '',
+      password:      process.env['SF_PASSWORD'] ?? '',
+      securityToken: process.env['SF_SECURITY_TOKEN'] ?? '',
+      authUrl:       process.env['SF_AUTH_URL'] ?? 'https://login.salesforce.com/services/oauth2/token',
+      apiVersion:    process.env['SF_API_VERSION'] ?? 'v62.0',
+    }, logger);
     _instance = new DataCloudApiClient(authManager);
   }
   return _instance;

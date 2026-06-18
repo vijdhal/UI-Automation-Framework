@@ -2,8 +2,6 @@ import { Page } from '@playwright/test';
 import { RecordPage } from './RecordPage';
 import { createLogger } from '../../utils/Logger';
 import { SfAccount } from '../../interfaces/salesforce.types';
-import { configManager } from '../../config/ConfigManager';
-
 const ACCOUNT_FIELDS: (keyof SfAccount)[] = [
   'Name', 'Phone', 'Website', 'Industry', 'Type',
   'AnnualRevenue', 'NumberOfEmployees',
@@ -18,7 +16,7 @@ export class AccountPage extends RecordPage {
   // ─── Navigation ──────────────────────────────────────────────────────────────
 
   async navigateById(accountId: string): Promise<void> {
-    const url = `${configManager.getBaseUrl()}/lightning/r/Account/${accountId}/view`;
+    const url = `${process.env['BASE_URL'] ?? ''}/lightning/r/Account/${accountId}/view`;
     this.logger.info(`Navigate to Account → ${accountId}`);
     await this.page.goto(url);
     await this.waitForLoad();

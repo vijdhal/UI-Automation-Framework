@@ -3,8 +3,6 @@ import { LoginPage }      from '../pages/salesforce/LoginPage';
 import { HomePage }       from '../pages/salesforce/HomePage';
 import { RecordPage }     from '../pages/salesforce/RecordPage';
 import { AccountPage }    from '../pages/salesforce/AccountPage';
-import { ContactPage }    from '../pages/salesforce/ContactPage';
-import { OpportunityPage }from '../pages/salesforce/OpportunityPage';
 import { ComparisonHelper } from '../helpers/ComparisonHelper';
 import { getSalesforceApiClient } from '../api/salesforce/SalesforceApiClient';
 import { getDataCloudApiClient }  from '../api/datacloud/DataCloudApiClient';
@@ -13,15 +11,13 @@ import { DataCloudApiClient }     from '../api/datacloud/DataCloudApiClient';
 
 /** All fixture types injected into SF tests. */
 type SfFixtures = {
-  loginPage:       LoginPage;
-  homePage:        HomePage;
-  recordPage:      RecordPage;
-  accountPage:     AccountPage;
-  contactPage:     ContactPage;
-  opportunityPage: OpportunityPage;
-  sfApi:           SalesforceApiClient;
-  dcApi:           DataCloudApiClient;
-  comparator:      ComparisonHelper;
+  loginPage:   LoginPage;
+  homePage:    HomePage;
+  recordPage:  RecordPage;
+  accountPage: AccountPage;
+  sfApi:       SalesforceApiClient;
+  dcApi:       DataCloudApiClient;
+  comparator:  ComparisonHelper;
 };
 
 /**
@@ -50,14 +46,6 @@ export const test = base.extend<SfFixtures>({
 
   accountPage: async ({ page }, use) => {
     await use(new AccountPage(page));
-  },
-
-  contactPage: async ({ page }, use) => {
-    await use(new ContactPage(page));
-  },
-
-  opportunityPage: async ({ page }, use) => {
-    await use(new OpportunityPage(page));
   },
 
   sfApi: async ({}, use) => {

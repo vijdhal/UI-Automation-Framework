@@ -1,7 +1,5 @@
 # Keyed by environment name (dev | qa | uat).
-# baseUrl and apiUrl are intentionally excluded — they are read from
-# the active .env.* file by ConfigManager to avoid duplication.
-#
+# baseUrl and apiUrl are read from process.env at runtime (loaded from .env.* by playwright.config.ts).
 # Usage: yamlReader.getEnvironment(process.env['ENV'] ?? 'dev')
 
 dev:

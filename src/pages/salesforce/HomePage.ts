@@ -2,8 +2,6 @@ import { Page } from '@playwright/test';
 import { BasePage } from '../BasePage';
 import { SalesforceLocators } from '../../locators/SalesforceLocators';
 import { createLogger } from '../../utils/Logger';
-import { configManager } from '../../config/ConfigManager';
-
 export class HomePage extends BasePage {
   private readonly loc = SalesforceLocators.home;
 
@@ -14,7 +12,7 @@ export class HomePage extends BasePage {
   // ─── Navigation ──────────────────────────────────────────────────────────────
 
   async goto(): Promise<void> {
-    const url = `${configManager.getBaseUrl()}/lightning/page/home`;
+    const url = `${process.env['BASE_URL'] ?? ''}/lightning/page/home`;
     this.logger.info(`Navigating to SF home → ${url}`);
     await this.page.goto(url);
     await this.waitForLoad();
@@ -41,13 +39,13 @@ export class HomePage extends BasePage {
   // ─── Object navigation (direct URL) ──────────────────────────────────────────
 
   async navigateToObject(objectApiName: string): Promise<void> {
-    const url = `${configManager.getBaseUrl()}/lightning/o/${objectApiName}/list`;
+    const url = `${process.env['BASE_URL'] ?? ''}/lightning/o/${objectApiName}/list`;
     await this.page.goto(url);
     await this.waitForVisible(SalesforceLocators.list.listTitle);
   }
 
   async navigateToRecord(recordId: string): Promise<void> {
-    const url = `${configManager.getBaseUrl()}/lightning/r/${recordId}/view`;
+    const url = `${process.env['BASE_URL'] ?? ''}/lightning/r/${recordId}/view`;
     await this.page.goto(url);
     await this.waitForVisible(SalesforceLocators.record.pageTitle, { timeout: 60_000 });
   }

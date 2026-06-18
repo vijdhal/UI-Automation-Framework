@@ -1,10 +1,7 @@
 # ── Dependencies ──────────────────────────────────────────────────────────────
 node_modules/
 
-# ── Environment files (contain credentials — never commit) ────────────────────
-.env.dev
-.env.qa
-.env.uat
+# ── Environment files ─────────────────────────────────────────────────────────
 .env.local
 
 # ── Salesforce auth state (contains live session cookies) ─────────────────────
