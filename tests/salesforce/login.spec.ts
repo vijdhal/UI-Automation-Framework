@@ -29,7 +29,7 @@ test.describe('Salesforce Login', () => {
   // ─── Valid Login ────────────────────────────────────────────────────────────
 
   test('TC_SF_Login_001 - Login with valid admin credentials', async ({ }, testInfo) => {
-    const cred = yamlReader.getCredential(testInfo.title);
+    const cred = yamlReader.getCredentialByRole('admin');
     const user = yamlReader.getUser(testInfo.title);
 
     await loginPage.login(cred.username, cred.password);

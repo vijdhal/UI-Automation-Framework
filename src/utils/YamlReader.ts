@@ -5,33 +5,29 @@ import { IYamlReader } from '../interfaces/IYamlReader';
 import { ILogger } from '../interfaces/ILogger';
 import { createLogger } from './Logger';
 import {
-  Credential,
-  CredentialsYaml,
   EnvironmentData,
   EnvironmentsYaml,
+  RoleCredential,
+  RoleCredentialsYaml,
   User,
   UsersYaml,
-  assertCredential,
   assertEnvironmentYamlEntry,
+  assertRoleCredential,
   assertUser,
 } from '../interfaces/yaml.types';
-const YAML_DIR = path.resolve(process.cwd(), 'src', 'testdata', 'yaml');
-const USERS_FILE = path.join(YAML_DIR, 'users.yaml');
-const CREDENTIALS_FILE = path.join(YAML_DIR, 'credentials.yaml');
+
+const YAML_DIR          = path.resolve(process.cwd(), 'src', 'testdata', 'yaml');
+const USERS_FILE        = path.join(YAML_DIR, 'users.yaml');
+const CREDENTIALS_FILE  = path.join(YAML_DIR, 'credentials.yaml');
 const ENVIRONMENTS_FILE = path.join(YAML_DIR, 'environments.yaml');
 
 class YamlReader implements IYamlReader {
-  /** Keyed by absolute file path */
   private readonly cache = new Map<string, unknown>();
 
   constructor(private readonly logger: ILogger = createLogger('YamlReader')) {}
 
   // ─── Generic API ─────────────────────────────────────────────────────────────
 
-  /**
-   * Loads and caches a YAML file. Subsequent calls return the cached value
-   * without touching disk.
-   */
   load<T>(filePath: string): T {
     const absolutePath = path.resolve(filePath);
 
@@ -71,10 +67,6 @@ class YamlReader implements IYamlReader {
     return parsed as T;
   }
 
-  /**
-   * Loads the YAML file and returns the value at `key`.
-   * Throws a descriptive error when the key is absent.
-   */
   get<T>(key: string, filePath: string): T {
     const doc = this.load<Record<string, unknown>>(filePath);
 
@@ -89,58 +81,55 @@ class YamlReader implements IYamlReader {
     return doc[key] as T;
   }
 
-  // ─── Typed helpers (test-case-name keyed) ────────────────────────────────────
+  // ─── Typed helpers ────────────────────────────────────────────────────────────
 
-  /**
-   * Looks up User data by test case name.
-   *
-   * Usage inside a Playwright test:
-   *   const user = yamlReader.getUser(testInfo.title);
-   */
-  getUser(testCaseName: string): User {
-    this.logger.info(`getUser → testCase: "${testCaseName}"`);
+  getUser(testCaseName: string, env: string = process.env['ENV'] ?? 'dev'): User {
+    this.logger.info(`getUser → testCase: "${testCaseName}", env: "${env}"`);
     const doc = this.load<UsersYaml>(USERS_FILE);
-    const value: unknown = doc[testCaseName];
+    const entry: unknown = doc[testCaseName];
 
-    if (value === undefined) {
+    if (entry === undefined) {
       const available = Object.keys(doc).join(', ');
       throw new Error(
         `No user entry for test case "${testCaseName}" in users.yaml.\nAvailable: ${available}`
       );
     }
 
-    assertUser(value, testCaseName);
+    const value = this.resolveEnvEntry(entry, env, testCaseName, 'users.yaml');
+    assertUser(value, `${testCaseName}[${env}]`);
     return value;
   }
 
   /**
-   * Looks up Credential data by test case name.
+   * Returns credentials for the given role from credentials.yaml.
+   * Automatically picks the correct env block (dev | qa | uat).
    *
-   * Usage inside a Playwright test:
-   *   const cred = yamlReader.getCredential(testInfo.title);
+   * Usage: yamlReader.getCredentialByRole('admin')
    */
-  getCredential(testCaseName: string): Credential {
-    this.logger.info(`getCredential → testCase: "${testCaseName}"`);
-    const doc = this.load<CredentialsYaml>(CREDENTIALS_FILE);
-    const value: unknown = doc[testCaseName];
+  getCredentialByRole(role: string, env: string = process.env['ENV'] ?? 'dev'): RoleCredential {
+    this.logger.info(`getCredentialByRole → role: "${role}", env: "${env}"`);
+    const doc = this.load<RoleCredentialsYaml>(CREDENTIALS_FILE);
 
-    if (value === undefined) {
+    const roleEntry = doc[role];
+    if (!roleEntry) {
       const available = Object.keys(doc).join(', ');
       throw new Error(
-        `No credential entry for test case "${testCaseName}" in credentials.yaml.\nAvailable: ${available}`
+        `No credentials for role "${role}" in credentials.yaml.\nAvailable roles: ${available}`
       );
     }
 
-    assertCredential(value, testCaseName);
-    return value;
+    const envEntry = roleEntry[env];
+    if (!envEntry) {
+      const available = Object.keys(roleEntry).join(', ');
+      throw new Error(
+        `No credentials for role "${role}" / env "${env}" in credentials.yaml.\nAvailable envs: ${available}`
+      );
+    }
+
+    assertRoleCredential(envEntry, role, env);
+    return envEntry;
   }
 
-  /**
-   * Returns a complete EnvironmentData for the given environment name.
-   *
-   * Usage inside a Playwright test:
-   *   const env = yamlReader.getEnvironment(process.env['ENV'] ?? 'dev');
-   */
   getEnvironment(envName: string): EnvironmentData {
     this.logger.info(`getEnvironment → env: "${envName}"`);
     const doc = this.load<EnvironmentsYaml>(ENVIRONMENTS_FILE);
@@ -156,12 +145,27 @@ class YamlReader implements IYamlReader {
     assertEnvironmentYamlEntry(entry, envName);
 
     return {
-      name: envName,
-      baseUrl: process.env['BASE_URL'] ?? '',
-      apiUrl: process.env['API_URL'] ?? '',
-      timeout: entry.timeout,
+      name:     envName,
+      baseUrl:  process.env['BASE_URL'] ?? '',
+      apiUrl:   process.env['API_URL'] ?? '',
+      timeout:  entry.timeout,
       features: entry.features,
     };
+  }
+
+  // ─── Private helpers ──────────────────────────────────────────────────────────
+
+  private resolveEnvEntry(entry: unknown, env: string, testCaseName: string, file: string): unknown {
+    if (typeof entry !== 'object' || entry === null) return entry;
+
+    const asMap = entry as Record<string, unknown>;
+    if (env in asMap) {
+      this.logger.debug(`Resolved env-specific entry for "${testCaseName}" [${env}] from ${file}`);
+      return asMap[env];
+    }
+
+    this.logger.debug(`Using flat entry for "${testCaseName}" (no env block for "${env}") from ${file}`);
+    return entry;
   }
 
   // ─── Cache management ─────────────────────────────────────────────────────────

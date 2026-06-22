@@ -1,34 +1,29 @@
-import { Credential, EnvironmentData, User } from './yaml.types';
+import { EnvironmentData, RoleCredential, User } from './yaml.types';
 
 export interface IYamlReader {
-  /**
-   * Generic parser — loads an entire YAML file and returns it as T.
-   * Result is cached by absolute file path.
-   */
+  /** Loads an entire YAML file and returns it as T. Result is cached by path. */
   load<T>(filePath: string): T;
 
-  /**
-   * Generic keyed getter — loads the file and returns the value at `key`.
-   * Useful for ad-hoc YAML files beyond the three built-in datasets.
-   */
+  /** Loads the file and returns the value at `key`. Useful for ad-hoc YAML files. */
   get<T>(key: string, filePath: string): T;
 
   /**
    * Returns User data whose key matches the test case name.
-   * Reads from src/testdata/yaml/users.yaml.
+   * Picks the env-specific block when the entry is keyed by environment.
+   * Defaults to process.env['ENV'] ?? 'dev'.
    */
-  getUser(testCaseName: string): User;
+  getUser(testCaseName: string, env?: string): User;
 
   /**
-   * Returns Credential data whose key matches the test case name.
-   * Reads from src/testdata/yaml/credentials.yaml.
+   * Returns credentials for the given role from credentials.yaml.
+   * Automatically picks the right env block (dev | qa | uat).
+   * Defaults to process.env['ENV'] ?? 'dev'.
+   *
+   * Usage: yamlReader.getCredentialByRole('admin')
    */
-  getCredential(testCaseName: string): Credential;
+  getCredentialByRole(role: string, env?: string): RoleCredential;
 
-  /**
-   * Returns EnvironmentData for the given environment name (dev | qa | uat).
-   * Reads from src/testdata/yaml/environments.yaml.
-   */
+  /** Returns EnvironmentData for the given environment name (dev | qa | uat). */
   getEnvironment(envName: string): EnvironmentData;
 
   /** Evicts all cached files so they are re-read on next access. */

@@ -1,5 +1,9 @@
 # Keys must exactly match the Playwright test title (test.info().title)
-# Each entry holds the User data needed by that specific test case.
+#
+# Flat entry   — same user data across all environments
+# Env-keyed    — separate dev/qa/uat blocks when user details differ per org
+
+# ─── Generic tests (same across all envs) ────────────────────────────────────
 
 TC_Login_001 - Login with admin credentials:
   id: user_001
@@ -39,18 +43,44 @@ TC_Profile_002 - View readonly user profile:
   email: charlie.brown@example.com
   role: readonly
 
-# ─── Salesforce ───────────────────────────────────────────────────────────────
+# ─── Salesforce (env-keyed — user details differ per org) ────────────────────
 
 TC_SF_Login_001 - Login with valid admin credentials:
-  id: sf_user_001
-  firstName: Sarah
-  lastName: Connor
-  email: sarah.connor@myorg.salesforce.com
-  role: admin
+  dev:
+    id: sf_user_001_dev
+    firstName: Sarah
+    lastName: Connor
+    email: sarah.connor@myorg.salesforce.com
+    role: admin
+  qa:
+    id: sf_user_001_qa
+    firstName: Sarah
+    lastName: Connor
+    email: sarah.connor@myorg-qa.salesforce.com
+    role: admin
+  uat:
+    id: sf_user_001_uat
+    firstName: Sarah
+    lastName: Connor
+    email: sarah.connor@myorg-uat.salesforce.com
+    role: admin
 
 TC_SF_Login_003 - Login with standard user credentials:
-  id: sf_user_002
-  firstName: James
-  lastName: Wilson
-  email: james.wilson@myorg.salesforce.com
-  role: standard
+  dev:
+    id: sf_user_002_dev
+    firstName: James
+    lastName: Wilson
+    email: james.wilson@myorg.salesforce.com
+    role: standard
+  qa:
+    id: sf_user_002_qa
+    firstName: James
+    lastName: Wilson
+    email: james.wilson.qa@myorg.salesforce.com
+    role: standard
+  uat:
+    id: sf_user_002_uat
+    firstName: James
+    lastName: Wilson
+    email: james.wilson.uat@myorg.salesforce.com
+    role: standard
