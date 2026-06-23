@@ -11,6 +11,7 @@ import { DataCloudApiClient }     from '../api/datacloud/DataCloudApiClient';
 
 /** All fixture types injected into SF tests. */
 type SfFixtures = {
+  _autoLogin:  void;
   loginPage:   LoginPage;
   homePage:    HomePage;
   recordPage:  RecordPage;
@@ -29,6 +30,19 @@ type SfFixtures = {
  *   test('verify account', async ({ accountPage, sfApi, comparator }) => { ... });
  */
 export const test = base.extend<SfFixtures>({
+
+  _autoLogin: [async ({ page }, use) => {
+    const sfUsername = process.env['SF_USERNAME'] ?? '';
+    const sfPassword = process.env['SF_PASSWORD'] ?? '';
+    if (!sfUsername || !sfPassword) {
+      throw new Error('SF_USERNAME and SF_PASSWORD must be set before running SF tests.');
+    }
+    const lp = new LoginPage(page);
+    await lp.navigate();
+    await lp.login(sfUsername, sfPassword);
+    await lp.verifyLoginSuccess();
+    await use();
+  }, { auto: true }],
 
   loginPage: async ({ page }, use) => {
     await use(new LoginPage(page));

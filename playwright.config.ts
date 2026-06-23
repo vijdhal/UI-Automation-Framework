@@ -90,13 +90,7 @@ export default defineConfig({
   },
 
   projects: [
-    // ── SF auth setup (runs once before sf-chromium) ──────────────────────────
-    {
-      name:      'sf-setup',
-      testMatch: /sfAuth\.setup\.ts/,
-    },
-
-    // ── Non-SF tests (no storageState required) ───────────────────────────────
+    // ── Non-SF tests (no auth required) ──────────────────────────────────────
     {
       name:       'chromium',
       testIgnore: ['**/salesforce/**'],
@@ -113,16 +107,11 @@ export default defineConfig({
       use:        { ...devices['Desktop Safari'] },
     },
 
-    // ── Salesforce tests (authenticated via storageState) ─────────────────────
-    // login.spec.ts overrides storageState with test.use({ storageState: undefined })
+    // ── Salesforce tests (login handled per-test via sfFixtures) ──────────────
     {
-      name:         'sf-chromium',
-      testDir:      './tests/salesforce',
-      dependencies: ['sf-setup'],
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: '.auth/sf-admin.json',
-      },
+      name:    'sf-chromium',
+      testDir: './tests/salesforce',
+      use:     { ...devices['Desktop Chrome'] },
     },
   ],
 });
